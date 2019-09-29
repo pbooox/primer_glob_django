@@ -17,10 +17,40 @@ def nueva_pub(request):
         if formulario.is_valid():
             pub = formulario.save(commit=False)
             pub.autor = request.user
-            pub.fecha_publicacion = timezone.now()
             pub.save()
             return redirect('detalle_pub', pk=pub.pk)
     else:
         formulario = FormPub()
     return render(request, 'blog/nueva_pub.html', {'formulario': formulario})
 
+def editar_pub(request, pk):
+    pub = get_object_or_404(Publicacion, pk=pk)
+    if request.method == "POST":
+        formulario = FormPub(request.POST, instance=pub)
+        if formulario.is_valid():
+            pub = formulario.save(commit=False)
+            pub.autor = request.user
+            pub.save()
+            return redirect('detalle_pub', pk=pub.pk)
+    else:
+        formulario = FormPub(instance=pub)
+    return render(request, 'blog/nueva_pub.html', {'formulario': formulario})
+
+def listar_borradores(request):
+    pubs = Publicacion.objects.filter(fecha_publicacion__isnull=True).order_by('fecha_creacion')
+    return render(request, 'blog/listar_borradores.html', {'pubs': pubs})
+
+
+def publicar(self):
+    self.fecha_publicacion = timezone.now()
+    self.save()
+
+def publicar_pub(request, pk):
+    pub = get_object_or_404(Publicacion, pk=pk)
+    pub.publicar()
+    return redirect('detalle_pub', pk=pk)
+
+def borrar_pub(request, pk):
+    pub = get_object_or_404(Publicacion, pk=pk)
+    pub.delete()
+    return redirect('post_list')
